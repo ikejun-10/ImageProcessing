@@ -1,0 +1,11 @@
+C:\Users\junya\imageMaker\src\app\main.cpp;C:\Users\junya\imageMaker\build\ImageProcessing.dir\Debug\main.obj
+C:\Users\junya\imageMaker\src\app\window_proc.cpp;C:\Users\junya\imageMaker\build\ImageProcessing.dir\Debug\window_proc.obj
+C:\Users\junya\imageMaker\src\app\input_handlers.cpp;C:\Users\junya\imageMaker\build\ImageProcessing.dir\Debug\input_handlers.obj
+C:\Users\junya\imageMaker\src\app\image_io.cpp;C:\Users\junya\imageMaker\build\ImageProcessing.dir\Debug\image_io.obj
+C:\Users\junya\imageMaker\src\app\edit_apply.cpp;C:\Users\junya\imageMaker\build\ImageProcessing.dir\Debug\edit_apply.obj
+C:\Users\junya\imageMaker\src\core\state.cpp;C:\Users\junya\imageMaker\build\ImageProcessing.dir\Debug\state.obj
+C:\Users\junya\imageMaker\src\ui\ui.cpp;C:\Users\junya\imageMaker\build\ImageProcessing.dir\Debug\ui.obj
+C:\Users\junya\imageMaker\src\view\view.cpp;C:\Users\junya\imageMaker\build\ImageProcessing.dir\Debug\view.obj
+C:\Users\junya\imageMaker\src\render\render.cpp;C:\Users\junya\imageMaker\build\ImageProcessing.dir\Debug\render.obj
+C:\Users\junya\imageMaker\src\correct\corrector.cpp;C:\Users\junya\imageMaker\build\ImageProcessing.dir\Debug\corrector.obj
+C:\Users\junya\imageMaker\src\geom\geometry.cpp;C:\Users\junya\imageMaker\build\ImageProcessing.dir\Debug\geometry.obj

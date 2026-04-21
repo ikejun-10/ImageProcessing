@@ -1,0 +1,10 @@
+^C:\USERS\JUNYA\IMAGEMAKER\BUILD\CMAKEFILES\3724517BACAC1A9ED3D82FD2B8B0C560\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/junya/imageMaker -BC:/Users/junya/imageMaker/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/junya/imageMaker/build/ImageProcessing.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
