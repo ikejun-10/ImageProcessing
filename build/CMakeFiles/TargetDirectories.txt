@@ -1,3 +1,0 @@
-C:/Users/junya/imageMaker/build/CMakeFiles/ImageProcessing.dir
-C:/Users/junya/imageMaker/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/junya/imageMaker/build/CMakeFiles/ZERO_CHECK.dir
