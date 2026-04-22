@@ -1,4 +1,4 @@
-# imageMaker
+# ImageProcessing
 
 A single Win32 + GDI+ desktop app. Load an image, select a region using **Quad (4 points)** or **Ellipse**, preview the corrected output, and export as PNG/JPEG.
 
