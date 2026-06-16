@@ -118,5 +118,27 @@ int HitTestControlPointIndex(HWND hwnd, int clientX, int clientY) {
     return -1;
 }
 
+bool PointInEllipseClientSpace(const app::EllipseParams& e, const app::ImageDisplayInfo& info, int clientX, int clientY) {
+    if (!e.valid || !info.valid) {
+        return false;
+    }
+    const double cx = static_cast<double>(info.rect.X) + e.cx * info.scale;
+    const double cy = static_cast<double>(info.rect.Y) + e.cy * info.scale;
+    const double a = e.a * info.scale;
+    const double b = e.b * info.scale;
+    if (a < 1.0 || b < 1.0) {
+        return false;
+    }
+    const double dx = static_cast<double>(clientX) - cx;
+    const double dy = static_cast<double>(clientY) - cy;
+    const double ct = std::cos(e.theta);
+    const double st = std::sin(e.theta);
+    const double lx = dx * ct + dy * st;
+    const double ly = -dx * st + dy * ct;
+    const double nx = lx / a;
+    const double ny = ly / b;
+    return (nx * nx + ny * ny) <= 1.0;
+}
+
 }  // namespace app::view
 

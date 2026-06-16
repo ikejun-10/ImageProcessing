@@ -2,16 +2,11 @@
 
 #include "state.h"
 
-#include <commdlg.h>
+#include <commctrl.h>
 #include <gdiplus.h>
 
 #include <algorithm>
 #include <string>
-#include <vector>
-
-using Gdiplus::GetImageEncoders;
-using Gdiplus::GetImageEncodersSize;
-using Gdiplus::ImageCodecInfo;
 
 namespace app::ui {
 
@@ -71,104 +66,6 @@ void InvalidateImageAreas(HWND hwnd, bool left, bool right) {
         RECT rc = ToWinRect(layout.rightImagePane);
         InvalidateRect(hwnd, &rc, FALSE);
     }
-}
-
-static bool GetEncoderClsid(const wchar_t* mimeType, CLSID* outClsid) {
-    if (!mimeType || !outClsid) {
-        return false;
-    }
-    UINT num = 0;
-    UINT size = 0;
-    GetImageEncodersSize(&num, &size);
-    if (size == 0) {
-        return false;
-    }
-    std::vector<BYTE> buffer(size);
-    ImageCodecInfo* codecs = reinterpret_cast<ImageCodecInfo*>(buffer.data());
-    if (GetImageEncoders(num, size, codecs) != Gdiplus::Ok) {
-        return false;
-    }
-    for (UINT i = 0; i < num; ++i) {
-        if (codecs[i].MimeType && wcscmp(codecs[i].MimeType, mimeType) == 0) {
-            *outClsid = codecs[i].Clsid;
-            return true;
-        }
-    }
-    return false;
-}
-
-static std::wstring ToLower(std::wstring s) {
-    for (auto& ch : s) {
-        if (ch >= L'A' && ch <= L'Z') {
-            ch = static_cast<wchar_t>(ch - L'A' + L'a');
-        }
-    }
-    return s;
-}
-
-static std::wstring GetFileExtensionLower(const std::wstring& path) {
-    const size_t dot = path.find_last_of(L'.');
-    if (dot == std::wstring::npos) {
-        return L"";
-    }
-    return ToLower(path.substr(dot));
-}
-
-bool SaveCorrectedImageWithDialog(HWND hwnd) {
-    if (!app::g_correctedImage) {
-        MessageBoxW(hwnd, L"No corrected image to export yet.", L"Error", MB_OK | MB_ICONERROR);
-        return false;
-    }
-
-    wchar_t filePath[MAX_PATH] = {0};
-    OPENFILENAMEW ofn = {};
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hwndOwner = hwnd;
-    ofn.lpstrFile = filePath;
-    ofn.nMaxFile = MAX_PATH;
-    ofn.lpstrFilter =
-        L"PNG (*.png)\0*.png\0"
-        L"JPEG (*.jpg;*.jpeg)\0*.jpg;*.jpeg\0";
-    ofn.nFilterIndex = 1;
-    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
-    ofn.lpstrDefExt = L"png";
-
-    if (!GetSaveFileNameW(&ofn)) {
-        return false;
-    }
-
-    std::wstring path = filePath;
-    const std::wstring ext = GetFileExtensionLower(path);
-    const wchar_t* mime = L"image/png";
-    if (ext == L".jpg" || ext == L".jpeg") {
-        mime = L"image/jpeg";
-    }
-
-    CLSID clsid;
-    if (!GetEncoderClsid(mime, &clsid)) {
-        MessageBoxW(hwnd, L"Failed to find image encoder.", L"Error", MB_OK | MB_ICONERROR);
-        return false;
-    }
-
-    if (wcscmp(mime, L"image/jpeg") == 0) {
-        const int w = static_cast<int>(app::g_correctedImage->GetWidth());
-        const int h = static_cast<int>(app::g_correctedImage->GetHeight());
-        Gdiplus::Bitmap flattened(w, h, PixelFormat32bppPARGB);
-        Gdiplus::Graphics g(&flattened);
-        g.Clear(Gdiplus::Color(255, 0, 0, 0));
-        g.DrawImage(app::g_correctedImage.get(), 0, 0);
-        if (flattened.Save(path.c_str(), &clsid, nullptr) != Gdiplus::Ok) {
-            MessageBoxW(hwnd, L"Failed to save image.", L"Error", MB_OK | MB_ICONERROR);
-            return false;
-        }
-        return true;
-    }
-
-    if (app::g_correctedImage->Save(path.c_str(), &clsid, nullptr) != Gdiplus::Ok) {
-        MessageBoxW(hwnd, L"Failed to save image.", L"Error", MB_OK | MB_ICONERROR);
-        return false;
-    }
-    return true;
 }
 
 HMENU CreateMainMenu() {
@@ -250,7 +147,7 @@ void UpdateSliderLabels() {
         SetWindowTextW(app::g_heightLabel, t.c_str());
     }
     if (app::g_rotateLabel) {
-        std::wstring t = L"Rotate: " + std::to_wstring(app::g_outputRotateDeg) + L"°";
+        std::wstring t = L"Rotate: " + std::to_wstring(app::g_outputRotateDeg) + L"\u00B0";
         SetWindowTextW(app::g_rotateLabel, t.c_str());
     }
     if (app::g_widthEdit) SetWindowTextW(app::g_widthEdit, std::to_wstring(app::g_outputWidth).c_str());

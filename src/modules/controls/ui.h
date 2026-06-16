@@ -24,8 +24,5 @@ void UpdateBrightnessLabels();
 bool TryReadIntFromEdit(HWND edit, int* outValue);
 LRESULT CALLBACK EditEnterSubclassProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR, DWORD_PTR refData);
 
-// Import/export dialogs
-bool SaveCorrectedImageWithDialog(HWND hwnd);
-
 }  // namespace app::ui
 

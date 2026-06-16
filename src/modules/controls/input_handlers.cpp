@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <string>
 
 #include "corrector.h"
 #include "state.h"
@@ -39,38 +38,7 @@ using app::ImageDisplayInfo;
 using app::SelectionMode;
 using app::ViewLayout;
 
-static void UpdateColorLabels() {
-    if (app::g_brightnessLabel) {
-        SetWindowTextW(app::g_brightnessLabel, (L"Brightness: " + std::to_wstring(app::g_brightness - 100)).c_str());
-    }
-    if (app::g_brightnessEdit) {
-        SetWindowTextW(app::g_brightnessEdit, std::to_wstring(app::g_brightness - 100).c_str());
-    }
-}
-
-static bool PointInEllipseClientSpace(const app::EllipseParams& e, const ImageDisplayInfo& info, int clientX, int clientY) {
-    if (!e.valid || !info.valid) {
-        return false;
-    }
-    const double cx = static_cast<double>(info.rect.X) + e.cx * info.scale;
-    const double cy = static_cast<double>(info.rect.Y) + e.cy * info.scale;
-    const double a = e.a * info.scale;
-    const double b = e.b * info.scale;
-    if (a < 1.0 || b < 1.0) {
-        return false;
-    }
-    const double dx = static_cast<double>(clientX) - cx;
-    const double dy = static_cast<double>(clientY) - cy;
-    const double ct = std::cos(e.theta);
-    const double st = std::sin(e.theta);
-    const double lx = dx * ct + dy * st;
-    const double ly = -dx * st + dy * ct;
-    const double nx = lx / a;
-    const double ny = ly / b;
-    return (nx * nx + ny * ny) <= 1.0;
-}
-
-static EllipseDragMode HitTestEllipseHandle(HWND hwnd, int clientX, int clientY) {
+EllipseDragMode HitTestEllipseHandle(HWND hwnd, int clientX, int clientY) {
     if (g_selectionMode != SelectionMode::Ellipse || !g_ellipse.valid) {
         return EllipseDragMode::None;
     }
@@ -115,17 +83,6 @@ static EllipseDragMode HitTestEllipseHandle(HWND hwnd, int clientX, int clientY)
     return EllipseDragMode::None;
 }
 
-static bool ClientToImageInLeftPane(HWND hwnd, int clientX, int clientY, PointF* outImagePoint) {
-    return app::view::ClientPointToImagePoint(hwnd, clientX, clientY, outImagePoint);
-}
-
-static bool ClientPointToImagePointClamped(HWND hwnd, int clientX, int clientY, PointF* outImagePoint) {
-    return app::view::ClientPointToImagePointClamped(hwnd, clientX, clientY, outImagePoint);
-}
-
-static int HitTestControlPointIndex(HWND hwnd, int clientX, int clientY) {
-    return app::view::HitTestControlPointIndex(hwnd, clientX, clientY);
-}
 }  // namespace
 
 namespace app::input {
@@ -152,7 +109,7 @@ bool HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* o
             if (g_selectionMode == SelectionMode::Ellipse) {
                 const EllipseDragMode handle = HitTestEllipseHandle(hwnd, mouseX, mouseY);
                 PointF imgPt;
-                if (!ClientToImageInLeftPane(hwnd, mouseX, mouseY, &imgPt)) {
+                if (!app::view::ClientPointToImagePoint(hwnd, mouseX, mouseY, &imgPt)) {
                     *outResult = 0;
                     return true;
                 }
@@ -169,7 +126,7 @@ bool HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* o
                     return true;
                 }
 
-                if (g_ellipse.valid && PointInEllipseClientSpace(g_ellipse, app::view::GetLeftImageDisplayInfo(hwnd), mouseX, mouseY)) {
+                if (g_ellipse.valid && app::view::PointInEllipseClientSpace(g_ellipse, app::view::GetLeftImageDisplayInfo(hwnd), mouseX, mouseY)) {
                     g_ellipseDragMode = EllipseDragMode::Move;
                     g_ellipseMoveOffset = PointF(static_cast<float>(imgPt.X - g_ellipse.cx), static_cast<float>(imgPt.Y - g_ellipse.cy));
                     SetCapture(hwnd);
@@ -191,7 +148,7 @@ bool HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* o
                 return true;
             }
 
-            const int hitPointIndex = HitTestControlPointIndex(hwnd, mouseX, mouseY);
+            const int hitPointIndex = app::view::HitTestControlPointIndex(hwnd, mouseX, mouseY);
             if (hitPointIndex >= 0) {
                 g_draggingPointIndex = hitPointIndex;
                 SetCapture(hwnd);
@@ -311,7 +268,7 @@ bool HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* o
                 const int mx = GET_X_LPARAM(lParam);
                 const int my = GET_Y_LPARAM(lParam);
                 PointF imgPt;
-                if (!ClientPointToImagePointClamped(hwnd, mx, my, &imgPt)) {
+                if (!app::view::ClientPointToImagePointClamped(hwnd, mx, my, &imgPt)) {
                     *outResult = 0;
                     return true;
                 }
@@ -386,7 +343,7 @@ bool HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* o
             }
 
             PointF imagePoint;
-            if (ClientPointToImagePointClamped(hwnd, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), &imagePoint)) {
+            if (app::view::ClientPointToImagePointClamped(hwnd, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), &imagePoint)) {
                 g_selectedPointsImageSpace[static_cast<size_t>(g_draggingPointIndex)] = imagePoint;
                 app::corrector::UpdateCorrectedPreview();
                 app::ui::InvalidateImageAreas(hwnd, true, true);
@@ -443,7 +400,7 @@ bool HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* o
             }
             if (reinterpret_cast<HWND>(lParam) == g_brightnessSlider) {
                 g_brightness = static_cast<int>(SendMessageW(g_brightnessSlider, TBM_GETPOS, 0, 0));
-                UpdateColorLabels();
+                app::ui::UpdateBrightnessLabels();
                 app::ui::InvalidateImageAreas(hwnd, true, true);
                 *outResult = 0;
                 return true;

@@ -18,6 +18,7 @@ bool ClientPointToImagePointClamped(HWND hwnd, int clientX, int clientY, Gdiplus
 
 // Hit testing
 int HitTestControlPointIndex(HWND hwnd, int clientX, int clientY);
+bool PointInEllipseClientSpace(const app::EllipseParams& e, const app::ImageDisplayInfo& info, int clientX, int clientY);
 
 }  // namespace app::view
 

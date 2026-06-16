@@ -6,6 +6,8 @@
 #include "state.h"
 #include "ui.h"
 
+namespace app::edit {
+
 namespace {
 using app::g_brightness;
 using app::g_brightnessEdit;
@@ -84,4 +86,6 @@ bool ApplyNumericEditValue(HWND hwnd, UINT editId) {
     }
     return false;
 }
+
+}  // namespace app::edit
 

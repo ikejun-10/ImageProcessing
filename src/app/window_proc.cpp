@@ -40,13 +40,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             const WORD commandId = LOWORD(wParam);
             const WORD notifyCode = HIWORD(wParam);
             if (commandId == kMenuImportPictureId) {
-                if (OpenAndLoadImage(hwnd)) {
+                if (app::io::OpenAndLoadImage(hwnd)) {
                     app::ui::InvalidateImageAreas(hwnd, true, true);
                 }
                 return 0;
             }
             if (commandId == kMenuExportCorrectedId) {
-                app::ui::SaveCorrectedImageWithDialog(hwnd);
+                app::io::SaveCorrectedImageWithDialog(hwnd);
                 return 0;
             }
             if (commandId == kModeToggleButtonId) {
@@ -72,7 +72,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             }
 
             if (notifyCode == EN_KILLFOCUS) {
-                if (ApplyNumericEditValue(hwnd, commandId)) {
+                if (app::edit::ApplyNumericEditValue(hwnd, commandId)) {
                     return 0;
                 }
             }
@@ -80,7 +80,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         }
 
         case kMsgApplyEditValue:
-            if (ApplyNumericEditValue(hwnd, static_cast<UINT>(wParam))) {
+            if (app::edit::ApplyNumericEditValue(hwnd, static_cast<UINT>(wParam))) {
                 return 0;
             }
             break;
