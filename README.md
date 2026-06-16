@@ -3,9 +3,6 @@
 斜めから撮った紙や円形の対象を「正面から見た画像」に補正する，単一 EXE の Windows デスクトップアプリ．
 画像を読み込み，Quad（4点）または Ellipse（楕円）で対象を囲むと，射影変換で正面化したプレビューがリアルタイムに表示され，PNG / JPEG として書き出せる．
 
-- 言語/基盤: C++17 + Win32 API + GDI+（依存ライブラリゼロ・単一 EXE 配布）
-- 画像補正: ホモグラフィ（射影変換）と逆写像バイリニア補間
-
 > 💡 **すぐ試したい方へ**: [Releases](https://github.com/ikejun-10/ImageProcessing/releases/latest) から `ImageProcessing.exe` をダウンロードしてそのまま起動できます（インストール不要・追加ライブラリ不要）．
 
 ![起動画面](img/app.png)
