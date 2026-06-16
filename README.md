@@ -6,6 +6,8 @@
 - 言語/基盤: **C++17 + Win32 API + GDI+**（依存ライブラリゼロ・単一 EXE 配布）
 - 画像補正: **ホモグラフィ（射影変換）と逆写像バイリニア補間**
 
+> 💡 **すぐ試したい方へ**: [**Releases**](https://github.com/ikejun-10/ImageProcessing/releases/latest) から `ImageProcessing.exe` をダウンロードしてそのまま起動できます（インストール不要・追加ライブラリ不要）．
+
 ![起動画面](img/app.png)
 
 ---
