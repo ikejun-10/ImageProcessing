@@ -1,135 +1,137 @@
+**English** | [日本語](README.ja.md)
+
 # imageProcessing
 
-斜めから撮った紙や円形の対象を「正面から見た画像」に補正する，単一 EXE の Windows デスクトップアプリ．
-画像を読み込み，Quad（4点）または Ellipse（楕円）で対象を囲むと，射影変換で正面化したプレビューがリアルタイムに表示され，PNG / JPEG として書き出せる．
+A single-EXE Windows desktop app that rectifies a photo of paper or a circular object shot at an angle into a head-on view.
+Load an image, enclose the target with Quad (4 points) or Ellipse, and a projective-transformed, rectified preview is shown in real time — exportable as PNG / JPEG.
 
-> 💡 **すぐ試したい方へ**: [Releases](https://github.com/ikejun-10/ImageProcessing/releases/latest) から `ImageProcessing.exe` をダウンロードしてそのまま起動できます（インストール不要・追加ライブラリ不要）．
+> 💡 **Want to try it right away?** Download `ImageProcessing.exe` from [Releases](https://github.com/ikejun-10/ImageProcessing/releases/latest) and run it directly (no installation, no extra libraries).
 
-![起動画面](img/app.png)
-
----
-
-## 主な機能
-
-- Import / Export: PNG / JPEG の読み込み・書き出し
-- 2 つの選択モード
-  - Quad（4点）: 画像上を 4 点で囲み，歪んだ四角形を正面の矩形へ補正
-  - Ellipse（楕円）: 楕円を描画・移動・リサイズ・回転して，楕円内部を切り出し補正
-- 左ペイン操作: ホイールでズーム（マウス位置中心）／中ボタンドラッグでパン
-- 右ペイン: 補正結果のリアルタイムプレビュー（出力サイズ・回転を反映）
-- 出力調整: 出力幅 / 高さ / 回転角をスライダーまたは数値入力（EditBox）で指定
-- 明度補正（Brightness）: スライダーで明るさを調整
+![App screenshot](img/app.png)
 
 ---
 
-## 使い方
+## Features
 
-1. `bin\ImageProcessing.exe` を起動する
-2. メニューの `File → Import Picture...` から PNG / JPEG を読み込む
-3. 左ペインで対象を選択する
-   - Quad モード: 対象の四隅を 4 点クリック（クリック順は自由 — 内部で正しい並びに自動整列）
-   - Ellipse モード: モードを切り替え，楕円を描いてハンドルで移動・リサイズ・回転
-4. 右ペインで正面化されたプレビューを確認する
-   - 出力幅・高さ・回転角・明度を，スライダーまたは数値入力で微調整
-5. `File → Export Corrected...` で PNG / JPEG として保存する
-   - Quad モードの境界外は黒，Ellipse モードの境界外は透明（PNG で透過保存）
-
-### Quad（4点）で加工
-
-斜めから撮った四角形を 4 点で囲み，正面の矩形へ補正する．
-
-![Quad で加工](img/quad.png)
-
-### Ellipse（楕円）で加工
-
-楕円を描いて内部を切り出し，回転・サイズを調整して補正する．
-
-![Ellipse で加工](img/ellipse.png)
+- Import / Export: load and save PNG / JPEG
+- Two selection modes
+  - Quad (4 points): enclose the target with 4 points to correct a distorted quadrilateral into a head-on rectangle
+  - Ellipse: draw / move / resize / rotate an ellipse to crop and rectify its interior
+- Left pane: zoom with the wheel (centered on the cursor) / pan with middle-button drag
+- Right pane: real-time preview of the result (reflecting output size and rotation)
+- Output adjustment: set output width / height / rotation angle via slider or numeric input (EditBox)
+- Brightness: adjust brightness with a slider
 
 ---
 
-## ビルド
+## Usage
 
-CMake + MSVC（Visual Studio 2022）を想定:
+1. Launch `bin\ImageProcessing.exe`
+2. Load a PNG / JPEG from the menu `File → Import Picture...`
+3. Select the target in the left pane
+   - Quad mode: click the four corners (any order — they are sorted into the correct order internally)
+   - Ellipse mode: switch the mode, draw an ellipse, and move / resize / rotate it with the handles
+4. Check the rectified preview in the right pane
+   - Fine-tune output width / height / rotation / brightness with sliders or numeric input
+5. Save as PNG / JPEG via `File → Export Corrected...`
+   - Outside the boundary: black in Quad mode, transparent in Ellipse mode (saved with alpha in PNG)
+
+### Quad (4-point) correction
+
+Enclose a quadrilateral shot at an angle with 4 points to rectify it into a head-on rectangle.
+
+![Quad correction](img/quad.png)
+
+### Ellipse correction
+
+Draw an ellipse to crop its interior, then adjust rotation and size to rectify it.
+
+![Ellipse correction](img/ellipse.png)
+
+---
+
+## Build
+
+Assumes CMake + MSVC (Visual Studio 2022):
 
 ```powershell
 cmake -S . -B build -G "Visual Studio 17 2022"
 cmake --build build --config Release
 ```
 
-成功すると `bin\ImageProcessing.exe` が生成される．
+On success, `bin\ImageProcessing.exe` is produced.
 
 ---
 
-## 使用技術
+## Tech stack
 
-| 領域 | 採用技術 |
+| Area | Technology |
 |---|---|
-| 言語 | C++17 |
-| GUI | Win32 API 直叩き |
-| 描画 | GDI+（PNG/JPEG 入出力・明度補正） |
-| 補正アルゴリズム | ホモグラフィ／逆写像補間 |
-| ビルド | CMake |
+| Language | C++17 |
+| GUI | Win32 API (raw) |
+| Rendering | GDI+ (PNG/JPEG I/O, brightness adjustment) |
+| Correction algorithm | Homography / inverse-mapping interpolation |
+| Build | CMake |
 
 ---
 
-## 設計・実装
+## Design & implementation
 
-### 1. ホモグラフィ（射影変換）を 8 元連立方程式で解く
+### 1. Solving the homography (projective transform) as an 8-variable linear system
 
-歪んだ四角形を正面の矩形へ写す変換は，3×3 のホモグラフィ行列 `H` で表せる（自由度 8，`h8 = 1` に固定）．
+The transform that maps a distorted quadrilateral onto a head-on rectangle is expressed by a 3×3 homography matrix `H` (8 degrees of freedom, with `h8 = 1` fixed).
 
 ```
 x = (h0·X + h1·Y + h2) / (h6·X + h7·Y + 1)
 y = (h3·X + h4·Y + h5) / (h6·X + h7·Y + 1)
 ```
 
-4 点対応からは点ごとに 2 本，計 8 本の線形方程式が立ち，これをガウス・ジョルダン法＋部分ピボット選択（数値的不安定を回避）で解く．
+Four point correspondences yield 2 equations each — 8 in total — solved by Gauss–Jordan elimination with partial pivoting (to avoid numerical instability).
 
-### 2. 4 点を決定的に正しく並べ替える
+### 2. Reordering the 4 points deterministically
 
-ユーザーのクリック順は自由だが，時計回りでないとホモグラフィが蝶ネクタイ型にねじれる．そこで順列全探索（4! = 24 通り）で，対辺が交差する並びを除外し，面積最大の並びを採用する．同じ頂点集合に対し一意・決定的である．
+The user's click order is free, but unless it is clockwise the homography twists into a bow-tie. So a full permutation search (4! = 24) discards orderings whose opposite edges cross and picks the one with the largest area. The result is unique and deterministic for the same set of vertices.
 
-### 3. 逆写像バイリニア補間
+### 3. Inverse-mapping bilinear interpolation
 
-順写像（入力→出力）は出力に穴・重なりが生じるため，逆写像（出力→入力）を採用．出力ピクセルごとに写った実数座標の最近傍 4 ピクセルを重み付き平均してなめらかに補正する．
-ピクセル形式は `PixelFormat32bppPARGB`（アルファ事前乗算）を使用している．
+Forward mapping (input→output) leaves holes and overlaps in the output, so inverse mapping (output→input) is used instead. For each output pixel, the 4 nearest pixels around the mapped real-valued coordinate are weighted-averaged for smooth correction.
+The pixel format is `PixelFormat32bppPARGB` (premultiplied alpha).
 
-### 4. 楕円のローカル座標系設計（Ellipse モード）
+### 4. Local coordinate system for the ellipse (Ellipse mode)
 
-楕円を `(中心 cx, cy / 半径 a, b / 回転 θ)` で表現し，出力グリッドを楕円ローカル座標へ写してから回転 θ を考慮して画像座標へ変換する．
+The ellipse is represented as `(center cx, cy / radii a, b / rotation θ)`. The output grid is mapped into the ellipse-local coordinates, then converted to image coordinates while accounting for rotation θ.
 
 ```
 srcX = cx + lx·cosθ − ly·sinθ
 srcY = cy + lx·sinθ + ly·cosθ
 ```
 
-正規化座標で `nx² + ny² > 1` なら楕円外と判定して透明化 → PNG 保存時にきれいに透過する．
+If the normalized coordinate satisfies `nx² + ny² > 1`, the pixel is judged outside the ellipse and made transparent → clean alpha when saved as PNG.
 
-### 5. 明度補正は GDI+ の `ColorMatrix`
+### 5. Brightness via the GDI+ `ColorMatrix`
 
-5×5 の `ColorMatrix`（アフィン変換）の最終行に `b` を入れ，RGB 全チャンネルにバイアスを加算するだけで明るさを調整する．
+Putting `b` in the last row of the 5×5 `ColorMatrix` (an affine transform) adds a bias to every RGB channel — adjusting brightness with nothing more.
 
-### 6. マウス位置中心のズーム
+### 6. Cursor-centered zoom
 
-カーソル下の画像座標を固定したままパン量を補正し直すことで，見たい点がずれない直感的な拡大・縮小を実現している．
+By keeping the image coordinate under the cursor fixed and recomputing the pan offset, zooming in/out stays intuitive and the point of interest never drifts.
 
-### 7. Win32 の作法
+### 7. Win32 craftsmanship
 
-- EditBox サブクラス化: `SetWindowSubclass` で Enter を捕まえ，数値確定を親へ通知
-- ダブルバッファリング: オフスクリーンの `Bitmap` に全描画してから 1 回転送し，チラつきを防止
+- EditBox subclassing: `SetWindowSubclass` captures Enter and notifies the parent when a value is committed
+- Double buffering: everything is drawn to an off-screen `Bitmap` and blitted once to prevent flicker
 
 ---
 
-## プロジェクト構成
+## Project structure
 
 ```
 src/
-├── app/                      # アプリ入口（wWinMain / WndProc）
+├── app/                      # App entry point (wWinMain / WndProc)
 └── modules/
-    ├── core/                 # 状態・幾何プリミティブ（線形方程式・ホモグラフィ・4点整列）
-    ├── io/                   # Import / Export ダイアログと保存処理
-    ├── view/                 # 表示geometry・座標変換・ヒットテスト・描画
-    ├── controls/             # レイアウト・EditBox 反映・マウス/ホイール入力
-    └── correction/           # 補正プレビューの生成（Quad / Ellipse）
+    ├── core/                 # State, geometry primitives (linear solver, homography, 4-point ordering)
+    ├── io/                   # Import / Export dialogs and saving
+    ├── view/                 # Display geometry, coordinate transforms, hit testing, rendering
+    ├── controls/             # Layout, EditBox handling, mouse/wheel input
+    └── correction/           # Building the corrected preview (Quad / Ellipse)
 ```
